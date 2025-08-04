@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>ATAR Calculator</title>
+</head>
+
+<body>
+    <h1>ATAR Predictor</h1>
+    <form method="post" action="/predict">
+        <label>Your Name:</label>
+        <input type="text" name="student_name" required><br><br>
+
+        <label>Subject:</label>
+        <input type="text" name="subject_name" required><br>
+        <label>School Mark:</label>
+        <input type="number" name="school_mark" required><br>
+        <label>Exam Mark:</label>
+        <input type="number" name="exam_mark" required><br><br>
+
+        <input type="submit" value="Calculate ATAR">
+    </form>
+
+    {% if result %}
+    <h2>Predicted ATAR: {{ result }}</h2>
+    {% endif %}
+</body>
+
+</html>
