@@ -18,7 +18,7 @@ class Subject:
         self.exam_mark = mark
     
     def average(self):
-        return (self.school_mark + self.exam_mark) / 2
+        return (self.school_mark + self.exam_mark) / 2.0
 
     def __str__(self):
         return f"{self.name}: {self.average():.2f}"

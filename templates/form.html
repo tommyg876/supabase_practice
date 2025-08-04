@@ -3,27 +3,233 @@
 
 <head>
     <title>ATAR Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #0f0f0f;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background-color: #1a1a1a;
+            width: 500px;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid #333;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #00d4ff;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="number"] {
+            width: 100%;
+            padding: 12px 16px;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        input[type="text"]::placeholder,
+        input[type="number"]::placeholder {
+            color: #888;
+        }
+
+        .range-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            background: #444;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00d4ff;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            background: #00b8e6;
+            transform: scale(1.1);
+        }
+
+        .range-value {
+            background: #00d4ff;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            min-width: 40px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .subject-section {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+        }
+
+        .subject-header {
+            color: #00d4ff;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .marks-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .submit-btn:hover {
+            background: linear-gradient(135deg, #00b8e6, #0088b3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .result {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            border: 1px solid #00d4ff;
+        }
+
+        .result h2 {
+            color: #00d4ff;
+            font-size: 24px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #00d4ff;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 
 <body>
-    <h1>ATAR Predictor</h1>
-    <form method="post" action="/predict">
-        <label>Your Name:</label>
-        <input type="text" name="student_name" required><br><br>
+    <div class="container">
+        <h1>ATAR Predictor</h1>
+        <form method="post" action="/predict">
+            <div class="form-group">
+                <label>Your Name:</label>
+                <input type="text" name="student_name" placeholder="Enter your full name" required>
+            </div>
 
-        <label>Subject:</label>
-        <input type="text" name="subject_name" required><br>
-        <label>School Mark:</label>
-        <input type="number" name="school_mark" required><br>
-        <label>Exam Mark:</label>
-        <input type="number" name="exam_mark" required><br><br>
+            {% for i in range(1, 4) %}
+            <div class="subject-section">
+                <div class="subject-header">Subject {{ i }}</div>
 
-        <input type="submit" value="Calculate ATAR">
-    </form>
+                <div class="form-group">
+                    <label>Subject Name:</label>
+                    <input type="text" name="subject_name_{{ i }}" placeholder="e.g., Math Advanced">
+                </div>
 
-    {% if result %}
-    <h2>Predicted ATAR: {{ result }}</h2>
-    {% endif %}
+                <div class="marks-row">
+                    <div class="form-group">
+                        <label>School Mark:</label>
+                        <div class="range-container">
+                            <input type="range" name="school_mark_{{ i }}" min="0" max="100" value="50"
+                                oninput="this.nextElementSibling.textContent = this.value">
+                            <span class="range-value">50</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Exam Mark:</label>
+                        <div class="range-container">
+                            <input type="range" name="exam_mark_{{ i }}" min="0" max="100" value="50"
+                                oninput="this.nextElementSibling.textContent = this.value">
+                            <span class="range-value">50</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+
+            <button type="submit" class="submit-btn">Calculate ATAR</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h2>Predicted ATAR</h2>
+            <div class="result-value">{{ result }}</div>
+        </div>
+        {% endif %}
+    </div>
 </body>
 
 </html>
