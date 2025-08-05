@@ -22,12 +22,3 @@ class Subject:
 
     def __str__(self):
         return f"{self.name}: {self.average():.2f}"
-
-student = Student(3, 'Tommy')
-math = Subject('Math Advanced', 88, 92)
-eng = Subject('English Standard', 75, 78)
-
-student.add_subject(math)
-student.add_subject(eng)
-
-print(student)
