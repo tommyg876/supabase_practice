@@ -66,51 +66,45 @@ class AuthResponse(BaseModel):
     user_id: str = None
     session: dict = None
 
-# Serve the campaign form (main page)
+# Add this new route for the authenticated form
+@app.get("/authenticated-form", response_class=HTMLResponse)
+def read_authenticated_form():
+    return FileResponse("front-end/inappform.html")
+
+# Update your existing routes to point to the right forms
 @app.get("/", response_class=HTMLResponse)
 def read_form():
-    return FileResponse("front-end/form.html")  # Use existing form.html
+    return FileResponse("front-end/form.html")  # Public form
 
-# Serve the login page
 @app.get("/login", response_class=HTMLResponse)
 def read_login():
     return FileResponse("front-end/login.html")  # This one is correct
 
-# Serve the dashboard page
 @app.get("/dashboard", response_class=HTMLResponse)
 def read_dashboard():
-    return FileResponse("front-end/dashboard.html")  # Use existing dashboard.html
+    return FileResponse("front-end/dashboard.html")
 
+# Update the submission endpoint to handle user_id
 @app.post('/submission')
 def html_submission(client: Client):
     try:
         print(f"Received submission for: {client.name} ({client.email})")
         print(f"Campaigns: {[c.campaign_name for c in client.campaigns]}")
         
+        # Get user ID from the request (you'll need to add this to your Client model)
+        # For now, let's use the email to find the user
+        user_email = client.email
+        
         # Get or create client and get their ID
         client_id = get_or_create_client(client.name, client.email, client.start_date) 
         print(f"Client ID: {client_id}")
-
-        # Update clients table with campaign names
-        campaigns_list = []
-        for campaign in client.campaigns:
-            campaigns_list.append(campaign.campaign_name)
-        
-        campaigns_string = ", ".join(campaigns_list)
-        
-        # Update the clients table with campaigns
-        # supabase.table("clients").update({
-        #     "campaigns": campaigns_string
-        # }).eq("id", client_id).execute()
-        print(f"Updated clients table with campaigns: {campaigns_string}")
 
         # Save campaigns to campaigns table
         for campaign in client.campaigns:
             print(f"Saving campaign: {campaign.campaign_name} (Spend: ${campaign.spend}, Target: {campaign.mql_target})")
             
-            # Be explicit about which data goes in which column
             campaign_data = {
-                "client_id": client_id,                  # First column - int
+                "client_id": client_id,  # This links to the specific user
                 "campaign_name": campaign.campaign_name,
                 "spend": int(campaign.spend),
                 "mql_target": int(campaign.mql_target),
@@ -119,10 +113,6 @@ def html_submission(client: Client):
             }
             
             print(f"Campaign data being sent: {campaign_data}")
-            
-            # Add debug lines AFTER creating campaign_data
-            print(f"Database columns should be: client_id, id, campaign_name, spend, mql_target, channel, actual_mqls")
-            print(f"But we're sending: {list(campaign_data.keys())}")
             
             try:
                 response = supabase.table("campaigns").insert(campaign_data).execute()
@@ -265,4 +255,161 @@ async def get_user_clients(user_id: str):
         return {
             "success": False,
             "message": f"Error: {str(e)}"
+        }
+
+# Add this new endpoint to get all clients and campaigns
+@app.get('/api/clients')
+async def get_all_clients():
+    try:
+        print("=== DEBUG: Starting /api/clients endpoint ===")
+        
+        # Check if Supabase client is working
+        print(f"Supabase URL: {url}")
+        print(f"Supabase Key: {key[:20]}...")
+        
+        # Test basic connection
+        print("Testing Supabase connection...")
+        test_response = supabase.table("clients").select("count").execute()
+        print(f"Connection test result: {test_response}")
+        
+        # Get all clients
+        print("Fetching clients...")
+        clients_response = supabase.table("clients").select("*").execute()
+        clients = clients_response.data
+        print(f"Found {len(clients)} clients: {clients}")
+        
+        # Get all campaigns
+        print("Fetching campaigns...")
+        campaigns_response = supabase.table("campaigns").select("*").execute()
+        campaigns = campaigns_response.data
+        print(f"Found {len(campaigns)} campaigns: {campaigns}")
+        
+        # Group campaigns by client
+        for client in clients:
+            client['campaigns'] = [c for c in campaigns if c.get('client_id') == client['id']]
+            print(f"Client {client['id']} has {len(client['campaigns'])} campaigns")
+        
+        result = {
+            "success": True,
+            "clients": clients,
+            "total_clients": len(clients),
+            "total_campaigns": len(campaigns)
+        }
+        
+        print(f"Returning result: {result}")
+        return result
+        
+    except Exception as e:
+        print(f"=== ERROR in /api/clients ===")
+        print(f"Error type: {type(e)}")
+        print(f"Error message: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e),
+            "error_type": str(type(e))
+        }
+
+# Update the /api/clients endpoint to filter by user
+@app.get('/api/clients/{user_id}')
+async def get_user_clients(user_id: str):
+    try:
+        print(f"=== DEBUG: Getting clients for user {user_id} ===")
+        
+        # Get clients for this specific user
+        # For now, let's assume the user_id matches client_id
+        # (In a real app, you'd have a user_id column in clients table)
+        clients_response = supabase.table("clients").select("*").eq("id", user_id).execute()
+        clients = clients_response.data
+        
+        print(f"Found {len(clients)} clients for user {user_id}")
+        
+        # Get campaigns for this user's clients
+        campaigns_response = supabase.table("campaigns").select("*").eq("client_id", user_id).execute()
+        campaigns = campaigns_response.data
+        
+        print(f"Found {len(campaigns)} campaigns for user {user_id}")
+        
+        # Group campaigns by client
+        for client in clients:
+            client['campaigns'] = [c for c in campaigns if c.get('client_id') == client['id']]
+            print(f"Client {client['id']} has {len(client['campaigns'])} campaigns")
+        
+        return {
+            "success": True,
+            "clients": clients,
+            "total_clients": len(clients),
+            "total_campaigns": len(campaigns)
+        }
+        
+    except Exception as e:
+        print(f"Error getting user clients: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Add this test endpoint
+@app.get('/test-database')
+async def test_database():
+    try:
+        print("=== Testing Database Connection ===")
+        
+        # Test clients table
+        clients_result = supabase.table("clients").select("*").execute()
+        print(f"Clients table: {clients_result.data}")
+        
+        # Test campaigns table
+        campaigns_result = supabase.table("campaigns").select("*").execute()
+        print(f"Campaigns table: {campaigns_result.data}")
+        
+        return {
+            "success": True,
+            "clients_count": len(clients_result.data),
+            "campaigns_count": len(campaigns_result.data),
+            "clients": clients_result.data,
+            "campaigns": campaigns_result.data
+        }
+        
+    except Exception as e:
+        print(f"Database test error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
+# Add this endpoint to check table structure
+@app.get('/check-tables')
+async def check_tables():
+    try:
+        print("=== Checking Table Structure ===")
+        
+        # Check if tables exist by trying to select from them
+        try:
+            clients_result = supabase.table("clients").select("*").limit(1).execute()
+            print(f"Clients table exists: {len(clients_result.data)} rows")
+        except Exception as e:
+            print(f"Clients table error: {e}")
+            
+        try:
+            campaigns_result = supabase.table("campaigns").select("*").limit(1).execute()
+            print(f"Campaigns table exists: {len(campaigns_result.data)} rows")
+        except Exception as e:
+            print(f"Campaigns table error: {e}")
+            
+        return {
+            "success": True,
+            "message": "Table check completed - check server logs"
+        }
+        
+    except Exception as e:
+        print(f"Table check error: {e}")
+        return {
+            "success": False,
+            "error": str(e)
         }
