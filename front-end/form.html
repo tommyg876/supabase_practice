@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>ATAR Calculator</title>
+    <title>Marketing Campaign Tracker</title>
     <style>
         * {
             margin: 0;
@@ -51,8 +51,9 @@
 
         input[type="text"],
         input[type="email"],
-        input[type="password"],
-        input[type="number"] {
+        input[type="number"],
+        input[type="date"],
+        select {
             width: 100%;
             padding: 12px 16px;
             background-color: #2a2a2a;
@@ -65,82 +66,48 @@
 
         input[type="text"]:focus,
         input[type="email"]:focus,
-        input[type="password"]:focus,
-        input[type="number"]:focus {
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
             outline: none;
             border-color: #00d4ff;
             box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
         }
 
-        input[type="text"]::placeholder,
-        input[type="email"]::placeholder,
-        input[type="password"]::placeholder,
-        input[type="number"]::placeholder {
-            color: #888;
-        }
-
-        .range-container {
+        .campaign-row {
             display: flex;
-            align-items: center;
             gap: 15px;
-            margin-top: 10px;
+            margin-bottom: 15px;
+            align-items: end;
         }
 
-        input[type="range"] {
+        .campaign-row input,
+        .campaign-row select {
             flex: 1;
-            height: 6px;
-            background: #444;
-            border-radius: 3px;
-            outline: none;
-            -webkit-appearance: none;
         }
 
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
+        .campaign-row input[type="number"] {
+            width: 120px;
+        }
+
+        .add-btn {
             background: #00d4ff;
-            border-radius: 50%;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
             cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            background: #00b8e6;
-            transform: scale(1.1);
-        }
-
-        .range-value {
-            background: #00d4ff;
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-weight: bold;
-            min-width: 40px;
-            text-align: center;
             font-size: 14px;
         }
 
-        .subject-section {
-            background: #222;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border: 1px solid #333;
-        }
-
-        .subject-header {
-            color: #00d4ff;
-            font-size: 18px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-
-        .marks-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .remove-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
         }
 
         .submit-btn {
@@ -163,6 +130,24 @@
             box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
         }
 
+        .secondary-btn {
+            width: 100%;
+            padding: 15px;
+            background: #333;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            color: #00d4ff;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .secondary-btn:hover {
+            background: #444;
+        }
+
         .result {
             background: #222;
             padding: 20px;
@@ -172,357 +157,231 @@
             border: 1px solid #00d4ff;
         }
 
-        .result h2 {
+        .roi-display {
+            font-size: 2em;
             color: #00d4ff;
-            font-size: 24px;
-        }
-
-        .result-value {
-            font-size: 48px;
             font-weight: bold;
-            color: #00d4ff;
             margin: 10px 0;
         }
 
-        .add-subject-btn {
+        .campaigns-list {
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        .campaign-item {
             background: #333;
-            color: #00d4ff;
-            border: 1px solid #00d4ff;
-            padding: 10px 20px;
+            padding: 10px;
+            margin: 5px 0;
             border-radius: 5px;
-            cursor: pointer;
-            margin-bottom: 20px;
-        }
-
-        .remove-subject-btn {
-            background: #ff4444;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 3px;
-            cursor: pointer;
-            float: right;
-        }
-
-        /* Modal styles */
-        .modal {
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal-content {
-            background-color: #1a1a1a;
-            padding: 40px;
-            border-radius: 15px;
-            border: 1px solid #333;
-            width: 400px;
-            position: relative;
-        }
-
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-            position: absolute;
-            top: 10px;
-            right: 15px;
-        }
-
-        .close:hover {
-            color: #00d4ff;
+            justify-content: space-between;
         }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>ATAR Predictor</h1>
-        <form id="atarForm">
+        <h1>Marketing Campaign Tracker</h1>
+        <p style="text-align: center; margin-bottom: 30px; color: #888;">
+            Track your marketing campaigns and calculate ROI
+        </p>
+
+        <form id="campaignForm">
             <div class="form-group">
-                <label>Your Name:</label>
-                <input type="text" name="name" placeholder="Enter your full name" required>
+                <label>Client Name:</label>
+                <input type="text" id="name" placeholder="Enter client name" required>
+            </div>
+            <div class="form-group">
+                <label>Email:</label>
+                <input type="email" id="email" placeholder="Enter client email" required>
+            </div>
+            <div class="form-group">
+                <label>Start Date:</label>
+                <input type="date" id="startDate" required>
             </div>
 
             <div class="form-group">
-                <label>Your Email:</label>
-                <input type="email" name="email" placeholder="Enter your email" required>
-            </div>
-
-            <div id="subjects-container">
-                <div class="subject-section" data-subject="0">
-                    <div class="subject-header">
-                        Subject 1
-                        <button type="button" class="remove-subject-btn" onclick="removeSubject(this)"
-                            style="display: none;">Remove</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Subject Name:</label>
-                        <input type="text" name="subjects[0][name]" placeholder="e.g., Math Advanced" required>
-                    </div>
-
-                    <div class="marks-row">
-                        <div class="form-group">
-                            <label>School Mark:</label>
-                            <div class="range-container">
-                                <input type="range" name="subjects[0][school_mark]" min="0" max="100" value="50"
-                                    oninput="this.nextElementSibling.textContent = this.value">
-                                <span class="range-value">50</span>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Exam Mark:</label>
-                            <div class="range-container">
-                                <input type="range" name="subjects[0][exam_mark]" min="0" max="100" value="50"
-                                    oninput="this.nextElementSibling.textContent = this.value">
-                                <span class="range-value">50</span>
-                            </div>
-                        </div>
+                <label>Campaigns:</label>
+                <div id="campaignsContainer">
+                    <div class="campaign-row">
+                        <input type="text" placeholder="Campaign name" class="campaign-name" required>
+                        <input type="number" placeholder="Spend ($)" min="0" step="0.01" class="spend" required>
+                        <input type="number" placeholder="MQL Target" min="0" class="mql-target" required>
+                        <select class="channel" required>
+                            <option value="">Select Channel</option>
+                            <option value="Google Ads">Google Ads</option>
+                            <option value="Facebook">Facebook</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Email">Email</option>
+                            <option value="Organic">Organic</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <input type="number" placeholder="Actual MQLs" min="0" class="actual-mqls" value="0">
+                        <button type="button" class="remove-btn" onclick="removeCampaign(this)">Remove</button>
                     </div>
                 </div>
+                <button type="button" class="add-btn" onclick="addCampaign()">+ Add Campaign</button>
             </div>
 
-            <button type="button" class="add-subject-btn" onclick="addSubject()">Add Another Subject</button>
-            <button type="submit" class="submit-btn">Calculate ATAR</button>
+            <button type="submit" class="submit-btn">Calculate ROI</button>
+            <button type="button" class="secondary-btn" onclick="window.location.href='/login'">Login to Save</button>
         </form>
 
         <div id="result" class="result" style="display: none;">
-            <h2>Submission Result</h2>
-            <div id="result-value"></div>
+            <h3>Campaign Analysis</h3>
+            <div id="roiValue" class="roi-display"></div>
+            <div id="campaignsList" class="campaigns-list"></div>
         </div>
     </div>
-
-    <!-- Auth Modal -->
-    <div id="authModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span class="close" onclick="closeAuthModal()">&times;</span>
-            <h2>Sign In to Submit</h2>
-            <p>Please sign in to submit your ATAR prediction.</p>
-
-            <form id="authForm">
-                <div class="form-group">
-                    <label>Email:</label>
-                    <input type="email" id="authEmail" placeholder="Enter your email" required>
-                </div>
-                <div class="form-group">
-                    <label>Password:</label>
-                    <input type="password" id="authPassword" placeholder="Enter your password" required>
-                </div>
-                <button type="submit" class="submit-btn">Sign In & Submit</button>
-                <button type="button" class="add-subject-btn" onclick="showSignUp()">Sign Up Instead</button>
-            </form>
-
-            <div id="authResult" class="result" style="display: none;">
-                <div id="authResultValue"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Supabase JavaScript library -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <script>
-        // Initialize Supabase client
-        const supabase = supabase.createClient(
-            'https://wdpyzgcwxngzudnezvxa.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndkcHl6Z2N3eG5nenVkbmV6dnhhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM4Njk2ODcsImV4cCI6MjA2OTQ0NTY4N30.6_U4wJh9EcTO2ql-CZDAKrHa8ueCRz--Vhei-_zOe3w'
-        );
-
-        let subjectCount = 1;
-
-        function addSubject() {
-            const container = document.getElementById('subjects-container');
-            const newSubject = document.createElement('div');
-            newSubject.className = 'subject-section';
-            newSubject.setAttribute('data-subject', subjectCount);
-
-            newSubject.innerHTML = `
-                <div class="subject-header">
-                    Subject ${subjectCount + 1}
-                    <button type="button" class="remove-subject-btn" onclick="removeSubject(this)">Remove</button>
-                </div>
-
-                <div class="form-group">
-                    <label>Subject Name:</label>
-                    <input type="text" name="subjects[${subjectCount}][name]" placeholder="e.g., Math Advanced" required>
-                </div>
-
-                <div class="marks-row">
-                    <div class="form-group">
-                        <label>School Mark:</label>
-                        <div class="range-container">
-                            <input type="range" name="subjects[${subjectCount}][school_mark]" min="0" max="100" value="50"
-                                oninput="this.nextElementSibling.textContent = this.value">
-                            <span class="range-value">50</span>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Exam Mark:</label>
-                        <div class="range-container">
-                            <input type="range" name="subjects[${subjectCount}][exam_mark]" min="0" max="100" value="50"
-                                oninput="this.nextElementSibling.textContent = this.value">
-                            <span class="range-value">50</span>
-                        </div>
-                    </div>
-                </div>
+        function addCampaign() {
+            const container = document.getElementById('campaignsContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'campaign-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Campaign name" class="campaign-name" required>
+                <input type="number" placeholder="Spend ($)" min="0" step="0.01" class="spend" required>
+                <input type="number" placeholder="MQL Target" min="0" class="mql-target" required>
+                <select class="channel" required>
+                    <option value="">Select Channel</option>
+                    <option value="Google Ads">Google Ads</option>
+                    <option value="Facebook">Facebook</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                    <option value="Email">Email</option>
+                    <option value="Organic">Organic</option>
+                    <option value="Other">Other</option>
+                </select>
+                <input type="number" placeholder="Actual MQLs" min="0" class="actual-mqls" value="0">
+                <button type="button" class="remove-btn" onclick="removeCampaign(this)">Remove</button>
             `;
-
-            container.appendChild(newSubject);
-            subjectCount++;
+            container.appendChild(newRow);
         }
 
-        function removeSubject(button) {
-            button.parentElement.parentElement.remove();
-        }
-
-        // Auth functions
-        async function checkAuth() {
-            const { data: { user } } = await supabase.auth.getUser();
-            return user;
-        }
-
-        function showAuthModal() {
-            document.getElementById('authModal').style.display = 'flex';
-        }
-
-        function closeAuthModal() {
-            document.getElementById('authModal').style.display = 'none';
-        }
-
-        async function showSignUp() {
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-
-            try {
-                const { data, error } = await supabase.auth.signUp({
-                    email: email,
-                    password: password
-                });
-
-                if (error) {
-                    document.getElementById('authResultValue').textContent = 'Error: ' + error.message;
-                } else {
-                    document.getElementById('authResultValue').textContent = 'Sign up successful! Please check your email.';
-                }
-
-                document.getElementById('authResult').style.display = 'block';
-            } catch (error) {
-                document.getElementById('authResultValue').textContent = 'Error: ' + error.message;
-                document.getElementById('authResult').style.display = 'block';
+        function removeCampaign(button) {
+            const container = document.getElementById('campaignsContainer');
+            if (container.children.length > 1) {
+                button.parentElement.remove();
             }
         }
 
-        // Handle form submission
-        document.getElementById('atarForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
+        function calculateROI(campaigns) {
+            let totalSpend = 0;
+            let totalMQLs = 0;
+            let totalTarget = 0;
 
-            // Check if user is authenticated
-            const user = await checkAuth();
-            if (!user) {
-                // Pre-fill email from form
-                const formEmail = document.querySelector('input[name="email"]').value;
-                if (formEmail) {
-                    document.getElementById('authEmail').value = formEmail;
-                }
-                showAuthModal();
-                return; // Stop here, don't submit form yet
-            }
+            campaigns.forEach(campaign => {
+                totalSpend += campaign.spend;
+                totalMQLs += campaign.actual_mqls;
+                totalTarget += campaign.mql_target;
+            });
 
-            // User is authenticated, submit form
-            submitFormData();
-        });
+            const conversionRate = totalTarget > 0 ? (totalMQLs / totalTarget * 100) : 0;
+            const costPerMQL = totalMQLs > 0 ? (totalSpend / totalMQLs) : 0;
 
-        // Handle auth form submission
-        document.getElementById('authForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const email = document.getElementById('authEmail').value;
-            const password = document.getElementById('authPassword').value;
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
-                    password: password
-                });
-
-                if (error) {
-                    document.getElementById('authResultValue').textContent = 'Error: ' + error.message;
-                } else {
-                    document.getElementById('authResultValue').textContent = 'Sign in successful!';
-                    closeAuthModal();
-                    // NOW submit the form data
-                    submitFormData();
-                }
-
-                document.getElementById('authResult').style.display = 'block';
-            } catch (error) {
-                document.getElementById('authResultValue').textContent = 'Error: ' + error.message;
-                document.getElementById('authResult').style.display = 'block';
-            }
-        });
-
-        async function submitFormData() {
-            const formData = new FormData(document.getElementById('atarForm'));
-            const data = {
-                name: formData.get('name'),
-                email: formData.get('email'),
-                subjects: []
+            return {
+                totalSpend: totalSpend.toFixed(2),
+                totalMQLs: totalMQLs,
+                conversionRate: conversionRate.toFixed(1),
+                costPerMQL: costPerMQL.toFixed(2)
             };
+        }
 
-            // Collect all subjects
-            const subjectSections = document.querySelectorAll('.subject-section');
-            subjectSections.forEach((section, index) => {
-                const name = section.querySelector(`input[name="subjects[${index}][name]"]`).value;
-                const school_mark = parseInt(section.querySelector(`input[name="subjects[${index}][school_mark]"]`).value);
-                const exam_mark = parseInt(section.querySelector(`input[name="subjects[${index}][exam_mark]"]`).value);
+        document.getElementById('campaignForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
 
-                if (name) {
-                    data.subjects.push({
-                        name: name,
-                        school_mark: school_mark,
-                        exam_mark: exam_mark
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const startDate = document.getElementById('startDate').value;
+
+            // Collect campaigns
+            const campaigns = [];
+            const campaignRows = document.querySelectorAll('.campaign-row');
+
+            campaignRows.forEach(row => {
+                const nameInput = row.querySelector('.campaign-name');
+                const spendInput = row.querySelector('.spend');
+                const targetInput = row.querySelector('.mql-target');
+                const channelInput = row.querySelector('.channel');
+                const actualInput = row.querySelector('.actual-mqls');
+
+                if (nameInput.value && spendInput.value && targetInput.value && channelInput.value) {
+                    campaigns.push({
+                        campaign_name: nameInput.value,
+                        spend: parseFloat(spendInput.value),
+                        mql_target: parseInt(targetInput.value),
+                        channel: channelInput.value,
+                        actual_mqls: parseInt(actualInput.value) || 0
                     });
                 }
             });
 
+            if (campaigns.length === 0) {
+                alert('Please add at least one campaign');
+                return;
+            }
+
+            // Calculate ROI
+            const roi = calculateROI(campaigns);
+
+            // Display results
+            document.getElementById('roiValue').textContent = `Total Spend: $${roi.totalSpend} | MQLs: ${roi.totalMQLs} | Conversion: ${roi.conversionRate}%`;
+
+            // Display campaigns
+            const campaignsList = document.getElementById('campaignsList');
+            campaignsList.innerHTML = '<h4>Your Campaigns:</h4>';
+            campaigns.forEach(campaign => {
+                const costPerMQL = campaign.actual_mqls > 0 ? (campaign.spend / campaign.actual_mqls).toFixed(2) : 'N/A';
+                campaignsList.innerHTML += `
+                    <div class="campaign-item">
+                        <span>${campaign.campaign_name} (${campaign.channel})</span>
+                        <span>Spend: $${campaign.spend} | Target: ${campaign.mql_target} | Actual: ${campaign.actual_mqls} | Cost/MQL: $${costPerMQL}</span>
+                    </div>
+                `;
+            });
+
+            document.getElementById('result').style.display = 'block';
+
+            // Send data to backend
             try {
-                // Get the current session
-                const { data: { session } } = await supabase.auth.getSession();
-
-                if (!session) {
-                    throw new Error('No active session');
-                }
-
                 const response = await fetch('/submission', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session.access_token}`
                     },
-                    body: JSON.stringify(data)
+                    body: JSON.stringify({
+                        name: name,
+                        email: email,
+                        start_date: startDate,
+                        campaigns: campaigns
+                    })
                 });
 
                 const result = await response.json();
 
-                document.getElementById('result-value').textContent = result.success || result.error;
-                document.getElementById('result').style.display = 'block';
+                if (result.success) {
+                    console.log('Data saved successfully!');
+                    campaignsList.innerHTML += '<div style="color: #00d4ff; margin-top: 15px; text-align: center;"><strong>✅ Data saved to database successfully!</strong></div>';
+                } else {
+                    console.error('Error saving data:', result.error);
+                    campaignsList.innerHTML += '<div style="color: #ff4444; margin-top: 15px; text-align: center;"><strong>❌ Error saving data: ' + result.error + '</strong></div>';
+                }
             } catch (error) {
-                document.getElementById('result-value').textContent = 'Error: ' + error.message;
-                document.getElementById('result').style.display = 'block';
+                console.error('Error sending data:', error);
+                campaignsList.innerHTML += '<div style="color: #ff4444; margin-top: 15px; text-align: center;"><strong>❌ Error connecting to server</strong></div>';
             }
-        }
+
+            // Store data for potential submission
+            const formData = {
+                name: name,
+                email: email,
+                start_date: startDate,
+                campaigns: campaigns,
+                roi: roi
+            };
+            localStorage.setItem('campaignFormData', JSON.stringify(formData));
+        });
     </script>
 </body>
 
