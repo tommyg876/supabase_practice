@@ -1,4 +1,6 @@
 fastapi
 uvicorn
-jinja2
+python-dotenv
+supabase
+pydantic[email]
 python-multipart

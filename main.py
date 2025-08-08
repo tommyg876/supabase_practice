@@ -12,18 +12,11 @@ load_dotenv()
 url: str = os.environ.get("SUPABASE_URL")
 key: str = os.environ.get("SUPABASE_KEY")
 
-# Debug: Check if environment variables are loaded
-print(f"SUPABASE_URL: {url}")
-print(f"SUPABASE_KEY: {key[:20] if key else 'None'}...")
-
-if not url or not key:
-    raise ValueError("Missing SUPABASE_URL or SUPABASE_KEY environment variables")
-
 supabase = create_client(url, key)
 
-#email: str = 
-#password: str = 
-#user = supabase.auth.sign_up()
+email: str = 
+password: str = 
+user = supabase.auth.sign_up()
 
 app = FastAPI()
 
@@ -35,9 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# Serve static files (CSS, JS, etc.)
-app.mount("/static", StaticFiles(directory="front-end"), name="static")
 
 class Campaign(BaseModel):
     campaign_name: str
@@ -87,12 +77,6 @@ def read_dashboard():
 # Update the submission endpoint to handle user_id
 @app.post('/submission')
 def html_submission(client: Client):
-    try:
-        print(f"Received submission for: {client.name} ({client.email})")
-        print(f"Campaigns: {[c.campaign_name for c in client.campaigns]}")
-        
-        # Get user ID from the request (you'll need to add this to your Client model)
-        # For now, let's use the email to find the user
         user_email = client.email
         
         # Get or create client and get their ID
@@ -101,7 +85,6 @@ def html_submission(client: Client):
 
         # Save campaigns to campaigns table
         for campaign in client.campaigns:
-            print(f"Saving campaign: {campaign.campaign_name} (Spend: ${campaign.spend}, Target: {campaign.mql_target})")
             
             campaign_data = {
                 "client_id": client_id,  # This links to the specific user
